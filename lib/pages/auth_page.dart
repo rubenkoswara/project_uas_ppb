@@ -19,6 +19,18 @@ class _AuthPageState extends State<AuthPage> {
   void toggle() => setState(() => isLogin = !isLogin);
 
   void auth() async {
+    // Validasi input sebelum request
+    if (emailController.text.isEmpty || passwordController.text.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Email dan password tidak boleh kosong'),
+          backgroundColor: Colors.red,
+          duration: Duration(seconds: 3),
+        ),
+      );
+      return;
+    }
+
     setState(() => loading = true);
     try {
       if (isLogin) {
@@ -67,9 +79,12 @@ class _AuthPageState extends State<AuthPage> {
           );
 
           if (mounted) {
+            setState(() => loading = false);
             ScaffoldMessenger.of(context).showSnackBar(
               const SnackBar(
                 content: Text('Pendaftaran berhasil! Silakan masuk kembali.'),
+                backgroundColor: Colors.green,
+                duration: Duration(seconds: 3),
               ),
             );
             setState(() => isLogin = true);
@@ -77,6 +92,8 @@ class _AuthPageState extends State<AuthPage> {
         }
       }
     } catch (e) {
+      setState(() => loading = false);
+
       // Log failed authentication attempt
       try {
         await SupabaseService.logSecurityEvent(
@@ -112,7 +129,9 @@ class _AuthPageState extends State<AuthPage> {
         );
       }
     }
-    setState(() => loading = false);
+    if (mounted) {
+      setState(() => loading = false);
+    }
   }
 
   @override
