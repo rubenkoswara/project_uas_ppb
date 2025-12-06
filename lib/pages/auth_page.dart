@@ -15,6 +15,8 @@ class _AuthPageState extends State<AuthPage> {
   final emailController = TextEditingController();
   final passwordController = TextEditingController();
   bool loading = false;
+  int _retryCount = 0;
+  static const int _maxRetries = 3;
 
   void toggle() => setState(() => isLogin = !isLogin);
 
@@ -31,7 +33,17 @@ class _AuthPageState extends State<AuthPage> {
       return;
     }
 
-    setState(() => loading = true);
+    setState(() {
+      loading = true;
+      _retryCount = 0;
+    });
+
+    // Attempt with retry logic
+    await _attemptAuth();
+  }
+
+  /// Attempt authentication with automatic retry on network error
+  Future<void> _attemptAuth() async {
     try {
       if (isLogin) {
         final res = await SupabaseService.client.auth.signInWithPassword(
@@ -94,6 +106,36 @@ class _AuthPageState extends State<AuthPage> {
     } catch (e) {
       setState(() => loading = false);
 
+      // Check if error is network-related
+      bool isNetworkError = e.toString().contains('Failed host lookup') ||
+          e.toString().contains('Network') ||
+          e.toString().contains('connection') ||
+          e.toString().contains('SocketException') ||
+          e.toString().contains('TimeoutException');
+
+      // Try automatic retry for network errors
+      if (isNetworkError && _retryCount < _maxRetries) {
+        if (mounted) {
+          // Show retry attempt message
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('Network error, retrying... (${_retryCount + 1}/$_maxRetries)'),
+              backgroundColor: Colors.orange,
+              duration: const Duration(seconds: 2),
+            ),
+          );
+        }
+
+        // Wait with exponential backoff: 1s, 2s, 4s
+        await Future.delayed(Duration(seconds: 1 << _retryCount));
+
+        setState(() => _retryCount++);
+        
+        // Retry the authentication
+        await _attemptAuth();
+        return;
+      }
+
       // Log failed authentication attempt
       try {
         await SupabaseService.logSecurityEvent(
@@ -108,10 +150,12 @@ class _AuthPageState extends State<AuthPage> {
         // Provide user-friendly error messages
         String errorMessage = 'Authentication error occurred';
         
-        if (e.toString().contains('Failed host lookup') || 
-            e.toString().contains('Network') ||
-            e.toString().contains('connection')) {
-          errorMessage = 'Network error: Please check your internet connection';
+        if (isNetworkError) {
+          if (_retryCount >= _maxRetries) {
+            errorMessage = 'Network error: Failed after ${_maxRetries} attempts. Check your internet connection and try again.';
+          } else {
+            errorMessage = 'Network error: Please check your internet connection';
+          }
         } else if (e.toString().contains('Invalid login credentials')) {
           errorMessage = 'Invalid email or password';
         } else if (e.toString().contains('User already exists')) {
