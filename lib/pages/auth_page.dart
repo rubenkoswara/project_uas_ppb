@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../providers/database_providers.dart';
+import '../services/supabase_service.dart';
 import 'auth_router.dart';
 
 class AuthPage extends StatefulWidget {
@@ -27,6 +28,15 @@ class _AuthPageState extends State<AuthPage> {
           password: passwordController.text,
         );
         if (res.user != null) {
+          // Save session securely
+          await SupabaseService.saveSessionSecurely();
+          
+          // Log successful login
+          await SupabaseService.logSecurityEvent(
+            eventType: 'login_success',
+            description: 'User successfully logged in',
+          );
+          
           final userRole = res.user?.appMetadata['role'] ?? 'customer';
           if (mounted) {
             Navigator.pushReplacement(
@@ -51,6 +61,12 @@ class _AuthPageState extends State<AuthPage> {
             print('Role update error: $e');
           }
 
+          // Log successful registration
+          await SupabaseService.logSecurityEvent(
+            eventType: 'registration_success',
+            description: 'New user successfully registered',
+          );
+
           if (mounted) {
             ScaffoldMessenger.of(context).showSnackBar(
               const SnackBar(
@@ -62,10 +78,18 @@ class _AuthPageState extends State<AuthPage> {
         }
       }
     } catch (e) {
-      if (mounted)
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text('Error: $e')));
+      // Log failed authentication attempt
+      await SupabaseService.logSecurityEvent(
+        eventType: 'auth_failure',
+        description: 'Authentication failed: $e',
+        metadata: {'email': emailController.text},
+      );
+      
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Error: $e')),
+        );
+      }
     }
     setState(() => loading = false);
   }
