@@ -89,8 +89,23 @@ class AppInitializer {
         ),
       );
 
-      debugLog('[AppInitializer] Supabase client initialized');
+      debugLog('[AppInitializer] ✅ Supabase client initialized successfully');
     } catch (e) {
+      String errorMsg = e.toString();
+      
+      // Detailed error logging for debugging
+      if (errorMsg.contains('Failed host lookup')) {
+        debugLog('[AppInitializer] ⚠️ DNS Resolution failed - cannot reach supabase.co domain');
+        debugLog('[AppInitializer] Possible causes:');
+        debugLog('[AppInitializer]   1. ISP/Operator blocking DNS to this domain');
+        debugLog('[AppInitializer]   2. DNS server returning wrong IP');
+        debugLog('[AppInitializer]   3. Network connectivity issue');
+      } else if (errorMsg.contains('Connection refused')) {
+        debugLog('[AppInitializer] ⚠️ Connection refused - server may be unreachable');
+      } else if (errorMsg.contains('TimeoutException')) {
+        debugLog('[AppInitializer] ⚠️ Timeout - network too slow or server unresponsive');
+      }
+      
       debugLog('[AppInitializer] Failed to initialize Supabase: $e');
       rethrow;
     }
