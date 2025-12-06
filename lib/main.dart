@@ -6,9 +6,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'config/supabase_config.dart';
 import 'pages/auth_page.dart';
 
-void main() async {
-  WidgetsFlutterBinding.ensureInitialized();
-
+Future<void> initializeSupabase() async {
   try {
     // Load environment variables from .env file (optional)
     await dotenv.load().catchError((_) {
@@ -16,16 +14,24 @@ void main() async {
       return;
     });
 
-    // Initialize Supabase
+    // Initialize Supabase with error handling
     await Supabase.initialize(
       url: SupabaseConfig.supabaseUrl,
       anonKey: SupabaseConfig.supabaseAnonKey,
     );
   } catch (e) {
     // Log error for debugging
-    print('Initialization error: $e');
+    print('Supabase initialization error: $e');
+    rethrow;
   }
+}
 
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  
+  // Initialize Supabase before running app
+  await initializeSupabase();
+  
   runApp(const ProviderScope(child: MyRenescaApp()));
 }
 

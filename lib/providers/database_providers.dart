@@ -2,15 +2,14 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../models/product.dart';
 import '../models/category_brand.dart';
-import '../services/supabase_service.dart';
 
-// Shortcut for backward compatibility
-final supabase = SupabaseService.client;
-
-// Lazy provider for Supabase client
+// Lazy provider for Supabase client - ONLY access this, never direct access
 final supabaseProvider = Provider((ref) {
   return Supabase.instance.client;
 });
+
+// For backward compatibility - create getter function instead of direct access
+SupabaseClient get supabase => Supabase.instance.client;
 
 final categoriesProvider = StreamProvider<List<CategoryBrand>>((ref) {
   final supabase = ref.watch(supabaseProvider);
