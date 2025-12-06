@@ -35,7 +35,4 @@ class SupabaseConfig {
     }
   }
 }
-    
-    return key;
-  }
-}
+
