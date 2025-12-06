@@ -78,15 +78,37 @@ class _AuthPageState extends State<AuthPage> {
       }
     } catch (e) {
       // Log failed authentication attempt
-      await SupabaseService.logSecurityEvent(
-        eventType: 'auth_failure',
-        description: 'Authentication failed: $e',
-        metadata: {'email': emailController.text},
-      );
+      try {
+        await SupabaseService.logSecurityEvent(
+          eventType: 'auth_failure',
+          description: 'Authentication failed: $e',
+        );
+      } catch (logError) {
+        // Silent fail on logging
+      }
       
       if (mounted) {
+        // Provide user-friendly error messages
+        String errorMessage = 'Authentication error occurred';
+        
+        if (e.toString().contains('Failed host lookup') || 
+            e.toString().contains('Network') ||
+            e.toString().contains('connection')) {
+          errorMessage = 'Network error: Please check your internet connection';
+        } else if (e.toString().contains('Invalid login credentials')) {
+          errorMessage = 'Invalid email or password';
+        } else if (e.toString().contains('User already exists')) {
+          errorMessage = 'Email already registered';
+        } else {
+          errorMessage = e.toString();
+        }
+        
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Error: $e')),
+          SnackBar(
+            content: Text(errorMessage),
+            backgroundColor: Colors.red,
+            duration: const Duration(seconds: 4),
+          ),
         );
       }
     }

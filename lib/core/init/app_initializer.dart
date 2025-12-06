@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
@@ -21,10 +22,10 @@ class AppInitializer {
   /// It handles:
   /// 1. Binding Flutter engine
   /// 2. Loading .env file for configuration
-  /// 3. Initializing Supabase with credentials
+  /// 3. Initializing Supabase client (non-blocking)
   /// 4. Setting up error handlers
   /// 
-  /// Throws: [Exception] if Supabase initialization fails
+  /// Note: This does NOT fail if network is unavailable
   static Future<void> initialize() async {
     try {
       const String logTag = '[AppInitializer]';
@@ -40,24 +41,31 @@ class AppInitializer {
         debugLog('$logTag Using fallback configuration');
       }
 
-      // Step 2: Initialize Supabase
+      // Step 2: Initialize Supabase (non-blocking)
       debugLog('$logTag Initializing Supabase...');
-      await _initializeSupabase();
-      debugLog('$logTag Supabase initialized successfully');
+      try {
+        await _initializeSupabase();
+        debugLog('$logTag Supabase initialized successfully');
 
-      // Step 3: Verify connection
-      debugLog('$logTag Verifying Supabase connection...');
-      await _verifyConnection();
+        // Step 3: Verify connection (only if init succeeded)
+        debugLog('$logTag Verifying Supabase connection...');
+        await _verifyConnection();
+      } catch (e) {
+        debugLog('[AppInitializer] ⚠️ Supabase init warning: $e');
+        // Don't crash app - allow offline mode
+        debugLog('[AppInitializer] App will work in offline mode');
+      }
 
       debugLog('$logTag ✅ App initialization complete!');
     } catch (e, stackTrace) {
-      debugLog('[AppInitializer] ❌ Initialization error: $e');
+      debugLog('[AppInitializer] ❌ Unexpected error: $e');
       debugLog('[AppInitializer] Stack trace: $stackTrace');
-      rethrow;
+      // Don't rethrow - allow app to continue
     }
   }
 
   /// Initialize Supabase with credentials
+  /// Throws exception on failure (caller handles gracefully)
   static Future<void> _initializeSupabase() async {
     try {
       final supabaseUrl = SupabaseConfig.supabaseUrl;
@@ -69,10 +77,16 @@ class AppInitializer {
 
       debugLog('[AppInitializer] Initializing with URL: ${supabaseUrl.split('.').first}...');
 
+      // Initialize with timeout to prevent hanging
       await Supabase.initialize(
         url: supabaseUrl,
         anonKey: anonKey,
-        debug: true, // Enable debug logging
+        debug: true,
+      ).timeout(
+        const Duration(seconds: 10),
+        onTimeout: () => throw TimeoutException(
+          'Supabase initialization timeout after 10 seconds',
+        ),
       );
 
       debugLog('[AppInitializer] Supabase client initialized');
@@ -83,6 +97,7 @@ class AppInitializer {
   }
 
   /// Verify that Supabase connection is working
+  /// Non-blocking - doesn't fail if connection check fails
   static Future<void> _verifyConnection() async {
     try {
       final client = Supabase.instance.client;
@@ -94,19 +109,23 @@ class AppInitializer {
         debugLog('[AppInitializer] ✅ Active session found for user: ${session.user.email}');
         
         // Log security event for session resumption
-        await SupabaseService.logSecurityEvent(
-          eventType: 'session_resumed',
-          description: 'Session resumed on app start',
-        );
+        try {
+          await SupabaseService.logSecurityEvent(
+            eventType: 'session_resumed',
+            description: 'Session resumed on app start',
+          );
+        } catch (e) {
+          debugLog('[AppInitializer] Could not log security event: $e');
+        }
       } else {
         debugLog('[AppInitializer] No active session - user needs to login');
       }
 
-      debugLog('[AppInitializer] ✅ Database connection verified');
+      debugLog('[AppInitializer] ✅ Supabase connection check complete');
       
     } catch (e) {
       debugLog('[AppInitializer] Connection verification warning: $e');
-      // Don't fail initialization if verification fails - app can still work
+      debugLog('[AppInitializer] App will work with offline fallback');
     }
   }
 
