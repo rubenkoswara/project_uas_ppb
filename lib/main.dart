@@ -1,16 +1,20 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'config/supabase_config.dart';
 import 'pages/auth_page.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
+  // Load environment variables from .env file
+  await dotenv.load();
+
   await Supabase.initialize(
-    url: 'https://yeffvxkfatwehjzwtuou.supabase.co',
-    anonKey:
-        'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InllZmZ2eGtmYXR3ZWhqend0dW91Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjM2NjAzNzQsImV4cCI6MjA3OTIzNjM3NH0.ECGxsdXmWER1jgwQAihS6ozB3H02nq0Q07MF20wnhP0',
+    url: SupabaseConfig.supabaseUrl,
+    anonKey: SupabaseConfig.supabaseAnonKey,
   );
 
   runApp(const ProviderScope(child: MyRenescaApp()));
