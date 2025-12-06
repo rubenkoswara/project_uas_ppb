@@ -9,13 +9,22 @@ import 'pages/auth_page.dart';
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
-  // Load environment variables from .env file
-  await dotenv.load();
+  try {
+    // Load environment variables from .env file (optional)
+    await dotenv.load().catchError((_) {
+      // .env file doesn't exist, which is okay - we have fallback
+      return;
+    });
 
-  await Supabase.initialize(
-    url: SupabaseConfig.supabaseUrl,
-    anonKey: SupabaseConfig.supabaseAnonKey,
-  );
+    // Initialize Supabase
+    await Supabase.initialize(
+      url: SupabaseConfig.supabaseUrl,
+      anonKey: SupabaseConfig.supabaseAnonKey,
+    );
+  } catch (e) {
+    // Log error for debugging
+    print('Initialization error: $e');
+  }
 
   runApp(const ProviderScope(child: MyRenescaApp()));
 }
@@ -28,6 +37,36 @@ class MyRenescaApp extends StatelessWidget {
     return MaterialApp(
       title: 'MyRenesca',
       debugShowCheckedModeBanner: false,
+      builder: (context, widget) {
+        // Show error UI if there's an uncaught exception
+        ErrorWidget.builder = (FlutterErrorDetails errorDetails) {
+          return Scaffold(
+            body: Center(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  const Icon(Icons.error, color: Colors.red, size: 60),
+                  const SizedBox(height: 20),
+                  const Text(
+                    'Oops! Something went wrong',
+                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                  ),
+                  const SizedBox(height: 10),
+                  Padding(
+                    padding: const EdgeInsets.all(16.0),
+                    child: Text(
+                      errorDetails.exceptionAsString(),
+                      textAlign: TextAlign.center,
+                      style: const TextStyle(fontSize: 12),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          );
+        };
+        return widget ?? const SizedBox();
+      },
       theme: ThemeData(
         colorScheme: ColorScheme.fromSeed(
           seedColor: const Color(0xFF00838F),
