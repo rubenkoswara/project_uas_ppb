@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
-import '../providers/database_providers.dart';
 import '../services/supabase_service.dart';
 import 'auth_router.dart';
 
@@ -23,7 +22,7 @@ class _AuthPageState extends State<AuthPage> {
     setState(() => loading = true);
     try {
       if (isLogin) {
-        final res = await supabase.auth.signInWithPassword(
+        final res = await SupabaseService.client.auth.signInWithPassword(
           email: emailController.text,
           password: passwordController.text,
         );
@@ -46,14 +45,14 @@ class _AuthPageState extends State<AuthPage> {
           }
         }
       } else {
-        final res = await supabase.auth.signUp(
+        final res = await SupabaseService.client.auth.signUp(
           email: emailController.text,
           password: passwordController.text,
         );
         if (res.user != null) {
           // Update user metadata for role
           try {
-            await supabase.auth.updateUser(
+            await SupabaseService.client.auth.updateUser(
               UserAttributes(data: {'role': 'customer'}),
             );
           } catch (e) {
