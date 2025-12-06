@@ -17,6 +17,12 @@ android {
     kotlinOptions {
         jvmTarget = JavaVersion.VERSION_17.toString()
     }
+    
+    configurations.all {
+        resolutionStrategy {
+            force 'androidx.core:core:1.9.0'
+        }
+    }
 
     defaultConfig {
         applicationId = "com.example.projectuasppb"
