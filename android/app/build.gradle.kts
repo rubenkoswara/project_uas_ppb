@@ -17,8 +17,7 @@ android {
     kotlinOptions {
         jvmTarget = JavaVersion.VERSION_17.toString()
     }
-
-
+    
     defaultConfig {
         applicationId = "com.example.projectuasppb"
         minSdk = flutter.minSdkVersion
