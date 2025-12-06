@@ -26,11 +26,17 @@ workflows:
           flutter pub get
       - name: Create .env file from environment variables
         script: |
-          cat > .env << EOF
+          # Create .env file only if environment variables are set
+          if [ -n "$SUPABASE_URL" ] && [ -n "$SUPABASE_ANON_KEY" ]; then
+            cat > .env << EOF
           SUPABASE_URL=$SUPABASE_URL
           SUPABASE_ANON_KEY=$SUPABASE_ANON_KEY
           EOF
-          cat .env
+            echo ".env file created successfully"
+            cat .env
+          else
+            echo "Environment variables not set, using fallback configuration"
+          fi
       - name: Build APK
         script: |
           flutter build apk \
@@ -72,10 +78,17 @@ workflows:
           flutter pub get
       - name: Create .env file from environment variables
         script: |
-          cat > .env << EOF
+          # Create .env file only if environment variables are set
+          if [ -n "$SUPABASE_URL" ] && [ -n "$SUPABASE_ANON_KEY" ]; then
+            cat > .env << EOF
           SUPABASE_URL=$SUPABASE_URL
           SUPABASE_ANON_KEY=$SUPABASE_ANON_KEY
           EOF
+            echo ".env file created successfully"
+            cat .env
+          else
+            echo "Environment variables not set, using fallback configuration"
+          fi
       - name: Build Debug APK
         script: |
           flutter build apk \
