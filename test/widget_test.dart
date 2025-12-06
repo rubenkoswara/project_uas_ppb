@@ -7,7 +7,7 @@ import 'package:projectuasppb/main.dart';
 void main() {
   testWidgets('Aplikasi MyRenesca menampilkan halaman Auth dan tombol Masuk', (WidgetTester tester) async {
     
-    await tester.pumpWidget(const ProviderScope(child: MyRenescaApp()));
+    await tester.pumpWidget(const ProviderScope(child: MyApp()));
 
     await tester.pumpAndSettle();
 

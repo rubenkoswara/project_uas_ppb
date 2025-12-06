@@ -99,7 +99,7 @@ workflows:
     publishing:
       email:
         recipients:
-          - benkoswara655@gmail.com
+          - rubenkoswara655@gmail.com
         notify:
           success: true
           failure: true
