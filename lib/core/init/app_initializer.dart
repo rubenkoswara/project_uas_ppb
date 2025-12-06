@@ -4,6 +4,7 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 
 import 'package:projectuasppb/config/supabase_config.dart';
 import 'package:projectuasppb/services/supabase_service.dart';
+import 'package:projectuasppb/services/dns_resolver_service.dart';
 
 /// Central app initialization handler
 /// 
@@ -44,8 +45,18 @@ class AppInitializer {
       // Step 2: Initialize Supabase (non-blocking)
       debugLog('$logTag Initializing Supabase...');
       try {
+        // Pre-flight DNS check before attempting Supabase init
+        debugLog('$logTag Performing DNS pre-check...');
+        try {
+          await DNSResolverService.verifySuabaseConnectivity()
+              .timeout(const Duration(seconds: 15));
+          debugLog('$logTag ✅ DNS pre-check successful');
+        } catch (e) {
+          debugLog('$logTag ⚠️ DNS pre-check warning: $e (will continue)');
+        }
+
         await _initializeSupabase();
-        debugLog('$logTag Supabase initialized successfully');
+        debugLog('$logTag ✅ Supabase initialized successfully');
 
         // Step 3: Verify connection (only if init succeeded)
         debugLog('$logTag Verifying Supabase connection...');

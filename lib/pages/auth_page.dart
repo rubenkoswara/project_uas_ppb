@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../services/supabase_service.dart';
+import '../services/dns_resolver_service.dart';
 import 'auth_router.dart';
 
 class AuthPage extends StatefulWidget {
@@ -45,6 +46,16 @@ class _AuthPageState extends State<AuthPage> {
   /// Attempt authentication with automatic retry on network error
   Future<void> _attemptAuth() async {
     try {
+      // Pre-flight DNS check to ensure connectivity
+      try {
+        print('[Auth] Performing DNS check before login...');
+        await DNSResolverService.verifySuabaseConnectivity()
+            .timeout(const Duration(seconds: 10));
+        print('[Auth] ✅ DNS check successful, proceeding with login');
+      } catch (e) {
+        print('[Auth] ⚠️ DNS pre-check failed, but attempting login anyway: $e');
+      }
+
       if (isLogin) {
         final res = await SupabaseService.client.auth.signInWithPassword(
           email: emailController.text,
