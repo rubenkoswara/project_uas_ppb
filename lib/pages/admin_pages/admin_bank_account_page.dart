@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../models/bank_account.dart';
 import '../../providers/database_providers.dart';
+import '../auth_page.dart';
 
 class AdminBankAccountPage extends StatelessWidget {
   const AdminBankAccountPage({super.key});
@@ -8,7 +9,23 @@ class AdminBankAccountPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Manajemen Akun Bank')),
+      appBar: AppBar(
+        title: const Text('Manajemen Akun Bank'),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.logout),
+            onPressed: () {
+              supabase.auth.signOut();
+              if (context.mounted)
+                Navigator.pushAndRemoveUntil(
+                  context,
+                  MaterialPageRoute(builder: (_) => const AuthPage()),
+                  (route) => false,
+                );
+            },
+          ),
+        ],
+      ),
       body: StreamBuilder(
         stream: supabase
             .from('bank_accounts')
@@ -161,6 +178,20 @@ class _AdminAddEditBankAccountState extends State<AdminAddEditBankAccount> {
         title: Text(
           widget.account != null ? 'Edit Akun Bank' : 'Tambah Akun Bank',
         ),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.logout),
+            onPressed: () {
+              supabase.auth.signOut();
+              if (context.mounted)
+                Navigator.pushAndRemoveUntil(
+                  context,
+                  MaterialPageRoute(builder: (_) => const AuthPage()),
+                  (route) => false,
+                );
+            },
+          ),
+        ],
       ),
       body: Form(
         key: _formKey,

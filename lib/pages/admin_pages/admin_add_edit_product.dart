@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:image_picker/image_picker.dart';
 import '../../models/product.dart';
 import '../../providers/database_providers.dart';
+import '../auth_page.dart'; // Import AuthPage
 
 class AdminAddEditProduct extends ConsumerStatefulWidget {
   final Product? product;
@@ -121,6 +122,20 @@ class _AdminAddEditProductState extends ConsumerState<AdminAddEditProduct> {
     return Scaffold(
       appBar: AppBar(
         title: Text(widget.product != null ? 'Edit Produk' : 'Tambah Produk'),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.logout),
+            onPressed: () {
+              supabase.auth.signOut();
+              if (mounted)
+                Navigator.pushAndRemoveUntil(
+                  context,
+                  MaterialPageRoute(builder: (_) => const AuthPage()),
+                  (route) => false,
+                );
+            },
+          ),
+        ],
       ),
       body: Form(
         key: _formKey,

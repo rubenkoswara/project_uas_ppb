@@ -2,8 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../services/supabase_service.dart';
-import '../services/dns_resolver_service.dart';
-import '../services/network_service.dart';
 import 'auth_router.dart';
 
 class AuthPage extends StatefulWidget {
@@ -44,16 +42,6 @@ class _AuthPageState extends State<AuthPage> {
 
   Future<void> _attemptAuth() async {
     try {
-      try {
-        print('[Auth] Checking network connectivity...');
-        final networkService = NetworkService();
-        await networkService.testSupabaseConnectivity();
-        print('[Auth] ✅ Network check successful');
-      } catch (e) {
-        print('[Auth] ⚠️ Network check failed: $e. Aborting auth attempt.');
-        throw Exception('Koneksi ke server gagal. Periksa jaringan Anda.');
-      }
-
       if (isLogin) {
         final res = await SupabaseService.client.auth.signInWithPassword(
           email: emailController.text,

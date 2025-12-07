@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import '../../providers/database_providers.dart';
+import '../auth_page.dart'; // Import AuthPage
 
 class AdminReportPage extends StatefulWidget {
   const AdminReportPage({super.key});
@@ -107,7 +108,23 @@ class _AdminReportPageState extends State<AdminReportPage> {
         : 'Semua Periode';
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Laporan Penjualan')),
+      appBar: AppBar(
+        title: const Text('Laporan Penjualan'),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.logout),
+            onPressed: () {
+              supabase.auth.signOut();
+              if (context.mounted)
+                Navigator.pushAndRemoveUntil(
+                  context,
+                  MaterialPageRoute(builder: (_) => const AuthPage()),
+                  (route) => false,
+                );
+            },
+          ),
+        ],
+      ),
       body: Column(
         children: [
           Padding(

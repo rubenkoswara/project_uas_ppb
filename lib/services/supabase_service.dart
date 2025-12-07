@@ -40,8 +40,6 @@ class SupabaseService {
     return result.trim();
   }
 
-
-
   static Future<void> logSecurityEvent({
     required String eventType,
     required String description,

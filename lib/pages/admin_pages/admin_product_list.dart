@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../models/product.dart';
 import '../../providers/database_providers.dart';
 import '../../providers/formatting_providers.dart';
+import '../auth_page.dart'; // Import AuthPage
 import 'admin_add_edit_product.dart';
 
 class AdminProductList extends ConsumerStatefulWidget {
@@ -57,7 +58,7 @@ class _AdminProductListState extends ConsumerState<AdminProductList> {
                   context,
                   MaterialPageRoute(
                     builder: (_) {
-                      return const Placeholder(); // akan diganti dengan AuthPage
+                      return const AuthPage();
                     },
                   ),
                 );

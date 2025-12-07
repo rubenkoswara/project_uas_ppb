@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../widgets/category_brand_widgets.dart';
+import '../../providers/database_providers.dart';
+import '../auth_page.dart';
 
 class AdminCategoryBrandPage extends StatelessWidget {
   const AdminCategoryBrandPage({super.key});
@@ -11,6 +13,20 @@ class AdminCategoryBrandPage extends StatelessWidget {
       child: Scaffold(
         appBar: AppBar(
           title: const Text('Manajemen Kategori & Merek'),
+          actions: [
+            IconButton(
+              icon: const Icon(Icons.logout),
+              onPressed: () {
+                supabase.auth.signOut();
+                if (context.mounted)
+                  Navigator.pushAndRemoveUntil(
+                    context,
+                    MaterialPageRoute(builder: (_) => const AuthPage()),
+                    (route) => false,
+                  );
+              },
+            ),
+          ],
           bottom: const TabBar(
             tabs: [
               Tab(text: 'Kategori', icon: Icon(Icons.category)),

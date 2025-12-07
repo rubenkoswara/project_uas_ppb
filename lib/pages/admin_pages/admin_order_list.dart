@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import '../../providers/database_providers.dart';
+import '../auth_page.dart'; // Import AuthPage
 
 class AdminOrderList extends StatelessWidget {
   const AdminOrderList({super.key});
@@ -14,7 +15,23 @@ class AdminOrderList extends StatelessWidget {
     );
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Daftar Pesanan Masuk')),
+      appBar: AppBar(
+        title: const Text('Daftar Pesanan Masuk'),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.logout),
+            onPressed: () {
+              supabase.auth.signOut();
+              if (context.mounted)
+                Navigator.pushAndRemoveUntil(
+                  context,
+                  MaterialPageRoute(builder: (_) => const AuthPage()),
+                  (route) => false,
+                );
+            },
+          ),
+        ],
+      ),
       body: StreamBuilder(
         stream: supabase
             .from('orders')

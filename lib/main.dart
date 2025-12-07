@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 
 import 'config/app_config.dart';
 import 'core/init/app_initializer.dart';
@@ -8,6 +9,14 @@ import 'pages/auth_page.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+
+  try {
+    await dotenv.load(fileName: ".env");
+    print('[MAIN] .env loaded successfully.');
+  } catch (e) {
+    print('[MAIN] ERROR: Failed to load .env file: $e');
+  }
+
   await AppInitializer.initialize();
   runApp(const ProviderScope(child: MyApp()));
 }
@@ -25,7 +34,6 @@ class MyApp extends StatelessWidget {
     );
   }
 
-  /// Build the app theme using Material Design 3
   ThemeData _buildTheme() {
     const primaryColor = Color(AppConfig.primaryColor);
     const secondaryColor = Color(AppConfig.secondaryColor);
@@ -71,9 +79,7 @@ class MyApp extends StatelessWidget {
         ),
       ),
       textButtonTheme: TextButtonThemeData(
-        style: TextButton.styleFrom(
-          foregroundColor: primaryColor,
-        ),
+        style: TextButton.styleFrom(foregroundColor: primaryColor),
       ),
       inputDecorationTheme: InputDecorationTheme(
         filled: true,

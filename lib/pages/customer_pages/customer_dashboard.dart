@@ -4,6 +4,7 @@ import '../../models/product.dart';
 import '../../providers/database_providers.dart';
 import '../../providers/cart_provider.dart';
 import '../../providers/formatting_providers.dart';
+import '../auth_page.dart'; // Import AuthPage
 import 'customer_order_list.dart';
 import 'cart_page.dart';
 
@@ -93,7 +94,7 @@ class _CustomerDashboardState extends ConsumerState<CustomerDashboard> {
                             context,
                             MaterialPageRoute(
                               builder: (_) {
-                                return const Placeholder(); // akan diganti dengan AuthPage
+                                return const AuthPage();
                               },
                             ),
                             (route) => false,

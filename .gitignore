@@ -80,13 +80,9 @@ app.*.map.json
 lib/generated_plugin_registrant.dart
 linux/flutter/ephemeral/
 linux/flutter/generated_plugins.cmake
-linux/flutter/plugins/
-linux/flutter/CMakeLists.txt
 linux/flutter/generated_plugins/
 windows/flutter/ephemeral/
 windows/flutter/generated_plugins.cmake
-windows/flutter/plugins/
-windows/flutter/CMakeLists.txt
 windows/flutter/generated_plugins/
 windows/runner/GeneratedPluginRegistrant.cpp
 windows/runner/GeneratedPluginRegistrant.h
@@ -120,7 +116,6 @@ doc/api/
 .flutter-plugins
 .flutter-plugins-dependencies
 .packages
-pubspec.lock
 /build/
 /dist/
 /.dart_tool/
