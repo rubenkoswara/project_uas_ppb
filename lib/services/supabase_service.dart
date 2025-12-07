@@ -5,13 +5,10 @@ class SupabaseService {
   static const _secureStorage = FlutterSecureStorage();
   static const _sessionKey = 'supabase_session';
 
-  // Get Supabase client instance
   static SupabaseClient get client => Supabase.instance.client;
 
-  // Get current authenticated user
   static User? get currentUser => client.auth.currentUser;
 
-  /// Save session securely (called after login)
   static Future<void> saveSessionSecurely() async {
     try {
       final session = client.auth.currentSession;
@@ -21,28 +18,20 @@ class SupabaseService {
           value: session.refreshToken ?? '',
         );
       }
-    } catch (e) {
-      // Session save error handled silently
-    }
+    } catch (e) {}
   }
 
-  /// Clear session (called on logout)
   static Future<void> clearSessionSecurely() async {
     try {
       await _secureStorage.delete(key: _sessionKey);
-    } catch (e) {
-      // Session clear error handled silently
-    }
+    } catch (e) {}
   }
 
-  /// Check if user is authenticated
   static bool isAuthenticated() {
     return client.auth.currentUser != null;
   }
 
-  /// Validate query parameters to prevent SQL injection
   static String sanitizeInput(String input) {
-    // Remove potentially dangerous characters
     String result = input;
     result = result.replaceAll("'", '');
     result = result.replaceAll('"', '');
@@ -53,14 +42,12 @@ class SupabaseService {
 
 
 
-  /// Log security events (for monitoring suspicious activity)
   static Future<void> logSecurityEvent({
     required String eventType,
     required String description,
     Map<String, dynamic>? metadata,
   }) async {
     try {
-      // Insert security log ke database
       await client.from('security_logs').insert({
         'user_id': currentUser?.id,
         'event_type': eventType,
@@ -69,9 +56,6 @@ class SupabaseService {
         'ip_address': '',
         'created_at': DateTime.now().toIso8601String(),
       });
-    } catch (e) {
-      // Log error handled silently
-    }
+    } catch (e) {}
   }
 }
-

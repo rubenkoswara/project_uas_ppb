@@ -23,7 +23,6 @@ class _AuthPageState extends State<AuthPage> {
   void toggle() => setState(() => isLogin = !isLogin);
 
   void auth() async {
-    // Validasi input sebelum request
     if (emailController.text.isEmpty || passwordController.text.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
@@ -40,22 +39,19 @@ class _AuthPageState extends State<AuthPage> {
       _retryCount = 0;
     });
 
-    // Attempt with retry logic
     await _attemptAuth();
   }
 
-  /// Attempt authentication with automatic retry on network error
   Future<void> _attemptAuth() async {
     try {
-      // Pre-flight network connectivity check
       try {
         print('[Auth] Checking network connectivity...');
         final networkService = NetworkService();
-        await networkService.testSupabaseConnectivity()
-            .timeout(const Duration(seconds: 15));
+        await networkService.testSupabaseConnectivity();
         print('[Auth] ✅ Network check successful');
       } catch (e) {
-        print('[Auth] ⚠️ Network check failed, but attempting login: $e');
+        print('[Auth] ⚠️ Network check failed: $e. Aborting auth attempt.');
+        throw Exception('Koneksi ke server gagal. Periksa jaringan Anda.');
       }
 
       if (isLogin) {
@@ -64,10 +60,8 @@ class _AuthPageState extends State<AuthPage> {
           password: passwordController.text,
         );
         if (res.user != null) {
-          // Save session securely
           await SupabaseService.saveSessionSecurely();
           
-          // Log successful login
           await SupabaseService.logSecurityEvent(
             eventType: 'login_success',
             description: 'User successfully logged in',
@@ -87,17 +81,14 @@ class _AuthPageState extends State<AuthPage> {
           password: passwordController.text,
         );
         if (res.user != null) {
-          // Update user metadata for role
           try {
             await SupabaseService.client.auth.updateUser(
               UserAttributes(data: {'role': 'customer'}),
             );
           } catch (e) {
-            // Role update error - proceed anyway
             print('Role update error: $e');
           }
 
-          // Log successful registration
           await SupabaseService.logSecurityEvent(
             eventType: 'registration_success',
             description: 'New user successfully registered',
@@ -119,17 +110,14 @@ class _AuthPageState extends State<AuthPage> {
     } catch (e) {
       setState(() => loading = false);
 
-      // Check if error is network-related
       bool isNetworkError = e.toString().contains('Failed host lookup') ||
           e.toString().contains('Network') ||
           e.toString().contains('connection') ||
           e.toString().contains('SocketException') ||
           e.toString().contains('TimeoutException');
 
-      // Try automatic retry for network errors
       if (isNetworkError && _retryCount < _maxRetries) {
         if (mounted) {
-          // Show retry attempt message
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
               content: Text('Network error, retrying... (${_retryCount + 1}/$_maxRetries)'),
@@ -139,28 +127,23 @@ class _AuthPageState extends State<AuthPage> {
           );
         }
 
-        // Wait with exponential backoff: 1s, 2s, 4s
         await Future.delayed(Duration(seconds: 1 << _retryCount));
 
         setState(() => _retryCount++);
         
-        // Retry the authentication
         await _attemptAuth();
         return;
       }
 
-      // Log failed authentication attempt
       try {
         await SupabaseService.logSecurityEvent(
           eventType: 'auth_failure',
           description: 'Authentication failed: $e',
         );
       } catch (logError) {
-        // Silent fail on logging
       }
       
       if (mounted) {
-        // Provide user-friendly error messages
         String errorMessage = 'Authentication error occurred';
         
         if (isNetworkError) {
